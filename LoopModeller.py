@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# import subprocess
 import argparse
-# import shlex
 import glob
-import os.path
+import os
 import re
 
 from modeller import *
@@ -31,6 +29,7 @@ class LoopModeller:
 		
 		# executes LoopModelling pipeline with Modeller
 		self.modelBetaBarrel()
+		self.assignChain('A')
 		self.modelLoops()
 		self.selectModel()
 
@@ -124,28 +123,84 @@ class LoopModeller:
 			for i in range( (int(strand_beg) - 1 - self.numbering[0]), (int(strand_end) - self.numbering[0]) ):
 				alignment[i] = self.sequence[i]
 		# output alignment *.pir file
-		AlignmentFile = str(self.FastaID) + ".pir"
+		AlignmentFile = "{0}/{1}.pir".format(self.BasePath, self.FastaID)
 		with open(AlignmentFile, "w") as f:
 			f.write( ">P1;{0}\n".format(self.FastaID) )
 			f.write( "structure:{0}:{1}:A: : : : : :\n".format(self.TemplateFile, self.numbering[0]) )
-			f.write( "{0}*\n".format(''.join(self.sequence)) )
+			f.write( "{0}*\n".format(''.join(alignment)) )
 			f.write( "\n" )
 
 			f.write( ">P1;{0}_full\n".format(self.FastaID) )
-			f.write( "structure:{0}:{1}:A: : : : : :\n".format(self.TemplateFile, self.numbering[0]) )
-			f.write( "{0}*\n".format(''.join(alignment)) )
-		
-		return AlignmentFile
+			f.write( "sequence:{0}:{1}:A: : : : : :\n".format(self.FastaID+"_full", self.numbering[0]) )
+			f.write( "{0}*\n".format(''.join(self.sequence)) )
+		if os.path.exists(AlignmentFile):
+			return AlignmentFile
+		else:
+			raise ValueErroe("Unable to create Modeller alignment (*.pir) file")
+
 
 
 	def assignChain(self, chain):
 		pass
 
+
+
+	def formatLoopResidues(self):
+		formattedRes = ""
+		memory_value = 0
+		# build formatted strings of from self.strands
+		for(beg_strand, end_strand) in self.strands:
+			if memory_value == 0:
+				s = "self.residue_range('1:A','{0}:A')".format(beg_strand)
+				memory_value = int(end_strand)
+			else:
+				s = "self.residue_range('{0}:A','{1}:A')".format(memory_value, int(beg_strand))
+				memory_value = int(end_strand)
+			formattedRes.join(s)
+		# join the last loop of the model to the selection
+		formattedRes.join("self.residue_range('{0}:A','{1}:A')".format(memory_value, len(self.sequence)))
+		print formattedRes
+		# return the string built from selected (all) loops
+		return formattedRes
+
+
 	def modelBetaBarrel(self):
-		pass
+		# set ModellerEnvironment parameters
+		self.ModellerEnv.io.atom_files_directory = [self.BasePath]
+		self.ModellerEnv.schedule_scale = physical.values(default=1.0, soft_sphere=0.7)
+		# define ß-berrel modelling parameters
+		aBetaBerrelModel = automodel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
+		aBetaBerrelModel.starting_model= 1                 # index of the first model
+		aBetaBerrelModel.ending_model = nModels            # index of the last model
+		# simulation parameters
+		aBetaBerrelModel.library_schedule = autosched.slow
+		aBetaBerrelModel.max_var_iterations = 300
+		aBetaBerrelModel.repeat_optimization = 20
+		aBetaBerrelModel.max_molpdf = 1e6
+		# define refinement level
+		aBetaBerrelModel.md_level = refine.very_slow
+		# model ß-barrel
+		aBetaBerrelModel.make()
+
 
 	def modelLoops(self):
-		pass
+		selectedResidues = self.formatLoopResidues()	
+		
+		# Create a new class based on 'loopmodel' so that we can redefine
+		# select_loop_atoms (necessary)
+		class MyLoop(loopmodel):
+		    # This routine picks the residues to be refined by loop modeling
+		    def select_loop_atoms(self):
+		        return selection(selectedResidues)
+			pass
+		# define ß-berrel loops' modelling parameters
+		aLoop = MyLoop(self.ModellerEnvironment, inimodel=self.TemplateFile, sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
+		aLoop.loop.starting_model = 1
+		aLoop.loop.ending_model = self.nModels
+		# define loops modelling refinement level
+		a.loop.md_level = refine.very_slow
+		# model loops
+		aLoop.make()
 
 	def selectModel(self):
 		pass
@@ -159,6 +214,7 @@ ArgParser.add_argument("-t", "--template", "--PDB", "--template-file", "--PDB-fi
 ArgParser.add_argument("-n", "--nModels", "--nModels", metavar="N", type=int, required=True, help="Number of models to be generated")
 ArgParser.add_argument("-v", "--verbose", action="store_true", help="Activates Modeller's verbose mode")
 
+# main execution of this script
 if __name__ == "__main__":
 	# parse command line arguments
 	args = ArgParser.parse_args()
