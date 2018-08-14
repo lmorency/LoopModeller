@@ -4,7 +4,7 @@ import argparse
 import glob
 import os
 import re
-from Bio.PDB import *
+# from Bio.PDB import *
 from modeller import *
 from modeller.automodel import *
 
@@ -49,7 +49,7 @@ class LoopModeller:
 				elif re.search(r'^>',l) and firstTagSeen and not secondTagSeen:
 					secondTagSeen = True
 					break
-		# build corresbonding self.numbering sequence		
+		# build corresbonding self.numbering sequence
 		i = 1
 		for c in seq:
 			self.numbering.append(i)
@@ -78,17 +78,12 @@ class LoopModeller:
 					resnum = int(l[22:26])
 					resnam = "{0:3}".format(l[17:20])
 					chain  = l[21]
-
-					# print(resnam)
-					# print(resnum)
-					# print(chain)
-					resi.append( (resnam, resnum, chain) )
-
-		# for i, (res, num, cha) in enumerate(resi):
+					resi.append( (resnam, resnum, chain, l) )
 		for (bs, es) in self.strands:
-			print(self.sequence[int(bs):int(es)])
-			exit()
-
+			strandSeq = "".join(self.sequence[int(bs):int(es)])
+			for i, (res, num, cha, lin) in enumerate(resi):
+				
+				
 		return resi
 					
 
