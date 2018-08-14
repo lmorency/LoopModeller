@@ -4,7 +4,7 @@ import argparse
 import glob
 import os
 import re
-
+from Bio.PDB import *
 from modeller import *
 from modeller.automodel import *
 
@@ -21,27 +21,39 @@ class LoopModeller:
 		self.nModels = nModels
 		self.BasePath = os.getcwd()
 		self.ModellerEnv = environ()
+		self.numbering = [] # self.numbering will be filled form [1,N] in readSequenceFromFASTA
 		self.sequence = self.readSequenceFromFASTA()
-		self.numbering = self.readPDBnumbering()
 		self.strands = self.readStrandsFile()
 		self.extendBetaStrands()
 		self.AlignmentFile = self.buildAlignmentFile()
+		self.resi = self.readPDBnumbering()
 		
 		# executes LoopModelling pipeline with Modeller
 		self.modelBetaBarrel()
-		self.assignChain('A')
 		self.modelLoops()
 		self.selectModel()
 
 	
 	def readSequenceFromFASTA(self):
 		seq = []
+		firstTagSeen = False
+		secondTagSeen = False
 		with open(self.FastaFile) as f:
 			lines = f.readlines()
 			for l in lines:
-				if not re.search(r'^>', l):
+				if re.search(r'^>',l) and not firstTagSeen:
+					firstTagSeen = True
+				elif not re.search(r'^>(tr|)*(\S+)', l) and not secondTagSeen:
 					chars = re.search(r'([A-Za-z]+)', l).group(0)
 					seq.extend(chars)
+				elif re.search(r'^>',l) and firstTagSeen and not secondTagSeen:
+					secondTagSeen = True
+					break
+		# build corresbonding self.numbering sequence		
+		i = 1
+		for c in seq:
+			self.numbering.append(i)
+			i = i + 1
 		# print(seq)
 		return seq
 
@@ -53,24 +65,31 @@ class LoopModeller:
 			for l in lines:
 				strand = re.search(r'(\d+)\s+(\d+)',l).groups(0)
 				strands.append(strand)
-		# print(strands)
+		print(strands)
 		return strands
 
 	
 	def readPDBnumbering(self):
-		numbering = []
+		resi = []
 		with open(self.TemplateFile) as f:
 			lines = f.readlines()
-			for l in lines:
+			for i,l in enumerate(lines):
 				if re.search(r'^ATOM', l) and re.search(r'CA', l):
-					number = int(l[22:26])
-					numbering.append(number)
-					for it in iter(self.sequence[1:]):
-						number = number + 1 
-						numbering.append(number)
-					break
-		# print(numbering)
-		return numbering
+					resnum = int(l[22:26])
+					resnam = "{0:3}".format(l[17:20])
+					chain  = l[21]
+
+					# print(resnam)
+					# print(resnum)
+					# print(chain)
+					resi.append( (resnam, resnum, chain) )
+
+		# for i, (res, num, cha) in enumerate(resi):
+		for (bs, es) in self.strands:
+			print(self.sequence[int(bs):int(es)])
+			exit()
+
+		return resi
 					
 
 	
@@ -78,7 +97,7 @@ class LoopModeller:
 		for i, (beg_cur, end_cur) in enumerate(self.strands):
 			if i < len(self.strands)-1:
 				(beg_nex, end_nex) = self.strands[i+1]
-				dist = int(beg_nex)-int(end_cur) - 1 
+				dist = int(beg_nex)-int(end_cur) 
 
 				# ß-barrel extension
 				# loop longer than 10 resideus
@@ -88,7 +107,7 @@ class LoopModeller:
 					self.strands[i] = (beg_cur, end_cur)
 					self.strands[i+1] = (beg_nex, end_nex)
 				# odd-loop shorter than 10 but longer than 2
-				elif dist > 3 and dist % 2 > 0:
+				elif dist > 3 and dist % 2 != 0:
 					# odd numbered loop
 					while dist > 3:
 						end_cur = int(end_cur) + 1
@@ -110,7 +129,7 @@ class LoopModeller:
 				
 				else:
 					pass
-		# print self.strands
+		print self.strands
 
 	
 	def buildAlignmentFile(self):
@@ -118,9 +137,10 @@ class LoopModeller:
 		alignment = []
 		for seq in self.sequence:
 			alignment.append("-")
+
 		# fill the structure with sequence when stranded (according to self.strands )
 		for (strand_beg, strand_end) in self.strands:
-			for i in range( (int(strand_beg) - 1 - self.numbering[0]), (int(strand_end) - self.numbering[0]) ):
+			for i in range( (int(strand_beg)), (int(strand_end)) ):
 				alignment[i] = self.sequence[i]
 		# output alignment *.pir file
 		AlignmentFile = "{0}/{1}.pir".format(self.BasePath, self.FastaID)
@@ -136,12 +156,7 @@ class LoopModeller:
 		if os.path.exists(AlignmentFile):
 			return AlignmentFile
 		else:
-			raise ValueErroe("Unable to create Modeller alignment (*.pir) file")
-
-
-
-	def assignChain(self, chain):
-		pass
+			raise ValueError("Unable to create modellers' alignment (*.pir) file")
 
 
 
@@ -165,11 +180,17 @@ class LoopModeller:
 
 
 	def modelBetaBarrel(self):
+		# redefine modeller's model class to rename chain
+		class MyModel(automodel):
+			def special_patches(self, aln):
+				for chain in self.chains:
+					chain.name = 'A'
+
 		# set ModellerEnvironment parameters
 		self.ModellerEnv.io.atom_files_directory = [self.BasePath]
 		self.ModellerEnv.schedule_scale = physical.values(default=1.0, soft_sphere=0.7)
 		# define ß-berrel modelling parameters
-		aBetaBerrelModel = automodel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
+		aBetaBerrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
 		aBetaBerrelModel.starting_model= 1                 # index of the first model
 		aBetaBerrelModel.ending_model = nModels            # index of the last model
 		# simulation parameters
@@ -192,7 +213,9 @@ class LoopModeller:
 		    # This routine picks the residues to be refined by loop modeling
 		    def select_loop_atoms(self):
 		        return selection(selectedResidues)
-			pass
+			def special_patches(self, aln):
+					for chain in self.chains:
+						chain.name = 'A'		
 		# define ß-berrel loops' modelling parameters
 		aLoop = MyLoop(self.ModellerEnvironment, inimodel=self.TemplateFile, sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
 		aLoop.loop.starting_model = 1
@@ -239,10 +262,19 @@ if __name__ == "__main__":
 		FastaID = os.path.split(FastaFile)[1]
 		if not isinstance(FastaID, str):
 			raise TypeError("The FASTA ID ({}) must be a string".format(FastaID))
-		elif not re.search(r'(\S+)\.fa', FastaID):
+		elif not re.search(r'(\S+)\.pfa', FastaID) and not re.search(r'(\S+)\.fa', FastaID):
 			raise ValueError("The FASTA files must contain a FASTA identifier ID")
 		else:
-			FastaID = re.search(r'^(\S+).*\.fa', FastaID).group(1)
+			FastaID = FastaID[0:6]
+
+		# look form scrambled FASTA file and TEMPLATE PDB file
+		# print(FastaFile)
+		# ScrambledFastaFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(FastaFile)[1])
+		# print(ScrambleFastaFile)
+		# if not os.path.exists(ScrambledFastaFile):
+		# 	raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledFastaFile))
+		
+		# ScrambledTemplateFile = 
 		
 		# specifies the *.strands file
 		StrandsFile = args.strands
@@ -265,6 +297,6 @@ if __name__ == "__main__":
 			log.verbose()
 
 		LoopModel = LoopModeller(FastaID, FastaFile, StrandsFile, TemplateFile, False, nModels)
-		# LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, TemplateFile, True, nModels)
-		# LoopModels.append( (LoopModel,LoopModelScrambled) )
+		LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, ScrambledTemplateFile, True, nModels)
+		LoopModels.append( (LoopModel,LoopModelScrambled) )
 
