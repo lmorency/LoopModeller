@@ -6,7 +6,7 @@ class PDBindexer:
 
 	def parse(self):
 		with open(self.fn) as f:
-			lines = f.readlines
+			lines = f.readlines()
 		self.resis = []
 		n = len(lines)
 		resi = []
