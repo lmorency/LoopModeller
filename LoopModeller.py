@@ -164,7 +164,7 @@ class LoopModeller:
 
 	def checkifdumping(self, i):
 		dumping = False
-		for s in self.strands:
+		for s in self.exstrands:
 			if i >= s[0] and i < s[1]:
 				dumping = True
 		return(dumping)
