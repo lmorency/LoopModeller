@@ -104,16 +104,16 @@ class LoopModeller:
 					if lastresnum is not None:
 						if (resnum == lastresnum):
 							if dumping:
-								dump(f, l, atomcount, resicount)
+								self.dump(f, l, atomcount, resicount)
 						else:
 							resicount += 1
 							dumping = self.checkifdumping(resicount)
 							if dumping:
-								dump(f, l, atomcount, resicount)		
+								self.dump(f, l, atomcount, resicount)		
 					else:
 						dumping = self.checkifdumping(resicount)
 						if dumping:
-							dump(f, l, atomcount, resicount)
+							self.dump(f, l, atomcount, resicount)
 					atomcount += 1
 					lastresnum = resnum
 
