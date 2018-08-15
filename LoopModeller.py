@@ -125,7 +125,7 @@ class LoopModeller:
 							self.dump(f, l, atomcount, resicount)
 							atomcount += 1
 							resicount += 1
-							actresicount += 1
+						actresicount += 1
 					else:
 						dumping = self.checkifdumping(actresicount)
 						if dumping:
