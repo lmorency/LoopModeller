@@ -170,7 +170,7 @@ class LoopModeller:
 		for k in range(n):
 			(i, j) = self.strands[k]
 			l = j-i + 8
-			self.ndxedstrands.append(actualjnexti, actualjnexti+l)
+			self.ndxedstrands.append((actualjnexti, actualjnexti+l))
 		print(self.ndxedstrands)
 
 
