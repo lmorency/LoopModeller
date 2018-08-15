@@ -273,8 +273,8 @@ class LoopModeller:
 		self.ModellerEnv.schedule_scale = physical.values(default=1.0, soft_sphere=0.7)
 		# define ß-berrel modelling parameters
 		aBetaBerrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
-		aBetaBerrelModel.starting_model= 1                 # index of the first model
-		aBetaBerrelModel.ending_model = nModels            # index of the last model
+		aBetaBerrelModel.starting_model = 1                 # index of the first model
+		aBetaBerrelModel.ending_model = self.nModels            # index of the last model
 		# simulation parameters
 		aBetaBerrelModel.library_schedule = autosched.slow
 		aBetaBerrelModel.max_var_iterations = 300
