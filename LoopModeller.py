@@ -273,13 +273,13 @@ class LoopModeller:
 			(i, j) = self.seqstrands[k]
 			if k == 0:
 				if i > 0:
-					loops.append(1, i)
+					loops.append((1, i))
 			elif k == n-1:
 				if j < len(self.sequence)-1:
-					loops.append(j+1, len(self.sequence))
+					loops.append((j+1, len(self.sequence)))
 			else:
 				nexti = self.seqstrands[k+1][0]
-				loops.append(j+1, i)
+				loops.append((j+1, i))
 		self.loops = loops
 
 	def formatLoopResidues(self):
