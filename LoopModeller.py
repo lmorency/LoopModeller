@@ -31,6 +31,8 @@ class LoopModeller:
 		self.exstrands = None
 		self.extendBetaStrands3()
 		self.printstrands()
+		self.extendBetaStrands()
+		self.printstrands()
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
 		exit()
@@ -235,15 +237,11 @@ class LoopModeller:
 		# print(self.exstrands)
 
 	def printstrands(self):
-		tmpstrands = self.strands
-		self.extendBetaStrands()
 		for i in range(len(self.strands)):
-			print(tmpstrands[i])
 			print(self.strands[i])
 			print(self.ndxedstrands[i])
 			print(self.exstrands[i])
 			print("")
-		self.strands = tmpstrands
 		print(len(self.sequence))
 
 	def extendBetaStrands2(self):
