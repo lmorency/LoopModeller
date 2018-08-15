@@ -25,6 +25,9 @@ class LoopModeller:
 		self.numbering = [] # self.numbering will be filled form [1,N] in readSequenceFromFASTA
 		self.sequence = self.readSequenceFromFASTA()
 		self.strands = self.readStrandsFile()
+		self.ndxedstrands = None
+		self.makendxedstrands
+		exit()
 		self.extendBetaStrands()
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
@@ -160,7 +163,18 @@ class LoopModeller:
 				"{0: 4d}".format(r+1) +
 				l[26:])
 
-	
+	def makendxedstrands(self):
+		self.ndxedstrands = []
+		n = len(self.strands)
+		actualjnexti = 0
+		for k in range(n):
+			(i, j) = self.strands[k]
+			l = j-i + 8
+			self.ndxedstrands.append(actualjnexti, actualjnexti+l)
+		print(self.ndxedstrands)
+
+
+
 	def extendBetaStrands2(self):
 		n = len(self.strands)
 		resicount = 0
@@ -191,10 +205,19 @@ class LoopModeller:
 				elif lloop > 3 and lloop % 2 != 0:
 					while lloop > 3:
 						yi += 1
+						li += 1
 						xj -= 1
 						lloop -= 2
 				elif lloop > 2 and lloop % 2 == 0:
-					
+					while lloop > 2:
+						yi += 1
+						li += 1
+						xj -= 1
+						lloop -= 2
+				self.strands[i+1] = (xj, yj)
+
+			self.strands[i] = (resicount+xi, resicount+xj)
+			self.
 
 
 
