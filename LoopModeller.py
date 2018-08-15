@@ -35,6 +35,8 @@ class LoopModeller:
 		self.printstrands()
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
+		self.loops = None
+		self.makeloops()
 		exit()
 		# self.resi = self.readPDBnumbering()
 		
@@ -47,7 +49,7 @@ class LoopModeller:
 		tmp = []
 		for s in self.strands:
 			tmp.append((s[0], s[1]))
-		return tmp 
+		return tmp
 
 	
 	def readSequenceFromFASTA(self):
@@ -264,26 +266,32 @@ class LoopModeller:
 		else:
 			raise ValueError("Unable to create modellers' alignment (*.pir) file")
 
-
+	def makeloops(self):
+		n = len(self.seqstrands)
+		loops = []
+		for k in range(n):
+			(i, j) = self.seqstrands[k]
+			if k == 0:
+				if i > 0:
+					loops.append(1, i)
+			elif k == n-1:
+				if j < len(self.sequence)-1:
+					loops.append(j+1, len(self.sequence))
+			else:
+				nexti = self.seqstrands[k+1][0]
+				loops.append(j+1, i)
+		self.loops = loops
 
 	def formatLoopResidues(self):
 		formattedRes = ""
-		memory_value = 0
-		# build formatted strings of from self.strands
-		for(beg_strand, end_strand) in self.strands:
-			if memory_value == 0:
-				s = "self.residue_range('1:A','{0}:A')".format(beg_strand)
-				memory_value = int(end_strand)
-			else:
-				s = "self.residue_range('{0}:A','{1}:A')".format(memory_value, int(beg_strand))
-				memory_value = int(end_strand)
-			formattedRes.join(s)
-		# join the last loop of the model to the selection
-		formattedRes.join("self.residue_range('{0}:A','{1}:A')".format(memory_value, len(self.sequence)))
-		print formattedRes
-		# return the string built from selected (all) loops
+		n = len(self.loops)
+		for k in range(n):
+			(i, j) = self.loops[k]
+			s = "self.residue_range('{0}:A','{1}:A')".format(i,j)
+			formattedRes += s
+			if k < n-1:
+				formattedRes += ','
 		return formattedRes
-
 
 	def modelBetaBarrel(self):
 		# redefine modeller's model class to rename chain
