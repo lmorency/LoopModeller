@@ -98,8 +98,8 @@ class LoopModeller:
 			lastresnum = None
 			first = True
 			dumping = False
-
-			for i in range(len(lines)):
+			n = len(lines)
+			for i in range(n):
 				l = lines[i]
 				nl = None
 				if i < n-1:
