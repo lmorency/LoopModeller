@@ -24,6 +24,7 @@ class LoopModeller:
 		self.nModels = nModels
 		self.BasePath = os.getcwd()
 		self.ModellerEnv = environ()
+
 		self.numbering = [] # self.numbering will be filled form [1,N] in readSequenceFromFASTA
 		self.sequence = self.readSequenceFromFASTA()
 		self.strands = self.readStrandsFile()
@@ -40,7 +41,7 @@ class LoopModeller:
 		self.makeloops()
 		
 		# executes LoopModelling pipeline with Modeller
-		# self.modelBetaBarrel()
+		self.modelBetaBarrel()
 		self.modelLoops()
 		self.selectModel()
 
@@ -278,7 +279,7 @@ class LoopModeller:
 					loops.append((j+1, len(self.sequence)))
 			else:
 				nexti = self.seqstrands[k+1][0]
-				loops.append((i, j+1))
+				loops.append((j+1,nexti))
 		self.loops = loops
 
 	def formatLoopResidues(self):
@@ -303,24 +304,26 @@ class LoopModeller:
 		self.ModellerEnv.io.atom_files_directory = [self.BasePath]
 		self.ModellerEnv.schedule_scale = physical.values(default=1.0, soft_sphere=0.7)
 		# define ß-berrel modelling parameters
-		aBetaBerrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
-		aBetaBerrelModel.starting_model = 1                 # index of the first model
-		aBetaBerrelModel.ending_model = self.nModels            # index of the last model
+		aBetaBarrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
+		aBetaBarrelModel.starting_model = 1                 # index of the first model
+		# aBetaBarrelModel.ending_model = self.nModels		# index of the last model
+		aBetaBarrelModel.ending_model = 1        			# index of the last model
 		# simulation parameters
-		aBetaBerrelModel.library_schedule = autosched.slow
-		aBetaBerrelModel.max_var_iterations = 300
-		aBetaBerrelModel.repeat_optimization = 20
-		aBetaBerrelModel.max_molpdf = 1e6
+		aBetaBarrelModel.library_schedule = autosched.slow
+		aBetaBarrelModel.max_var_iterations = 300
+		aBetaBarrelModel.repeat_optimization = 20
+		aBetaBarrelModel.max_molpdf = 1e6
 		# define refinement level
-		# aBetaBerrelModel.md_level = refine.very_slow
-		aBetaBerrelModel.md_level = refine.very_fast
+		aBetaBarrelModel.md_level = refine.very_slow
+		# aBetaBarrelModel.md_level = refine.very_fast
 		# model ß-barrel
-		aBetaBerrelModel.make()
+		aBetaBarrelModel.make()
+		# assign BetaBarrelModel to LoopModeller class
+		self.BetaBarrelModel = aBetaBarrelModel
 
 
 	def modelLoops(self):
 		selectedResidues = self.formatLoopResidues()	
-		print(selectedResidues)
 		# Create a new class based on 'loopmodel' so that we can redefine
 		# select_loop_atoms (necessary)
 		class MyLoop(loopmodel):
@@ -331,15 +334,16 @@ class LoopModeller:
 					for chain in self.chains:
 						chain.name = 'A'		
 		# define ß-berrel loops' modelling parameters
-		# aLoop = MyLoop(self.ModellerEnv, inimodel=self.TemplateFile, sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
-		aLoop = MyLoop(self.ModellerEnv, inimodel="A9WGN5_full.B99990001.pdb", sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
+		aLoop = MyLoop(self.ModellerEnv, inimodel=self.BetaBarrelModel.get_model_filename(sequence=self.FastaID + "_full",id1=9999,id2=1,file_ext='.pdb'), sequence=self.FastaID + "_full", loop_assess_methods=assess.DOPE)
 		aLoop.loop.starting_model = 1
-		aLoop.loop.ending_model = self.nModels
+		aLoop.loop.ending_model = self.nModels+3
 		# define loops modelling refinement level
-		# aLoop.loop.md_level = refine.very_slow
-		aLoop.loop.md_level = refine.very_fast
+		aLoop.loop.md_level = refine.very_slow
+		# aLoop.loop.md_level = refine.very_fast
 		# model loops
 		aLoop.make()
+		# assign LoopModel to LoopModeller class
+		self.LoopModel.append( aLoop )
 
 	def selectModel(self):
 		pass
@@ -384,9 +388,7 @@ if __name__ == "__main__":
 			FastaID = FastaID[0:6]
 
 		# look form scrambled FASTA file and TEMPLATE PDB file
-		# print(FastaFile)
 		# ScrambledFastaFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(FastaFile)[1])
-		# print(ScrambleFastaFile)
 		# if not os.path.exists(ScrambledFastaFile):
 		# 	raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledFastaFile))
 		
