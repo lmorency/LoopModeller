@@ -31,9 +31,9 @@ class LoopModeller:
 		# self.resi = self.readPDBnumbering()
 		
 		# executes LoopModelling pipeline with Modeller
-		self.modelBetaBarrel()
-		self.modelLoops()
-		self.selectModel()
+		# self.modelBetaBarrel()
+		# self.modelLoops()
+		# self.selectModel()
 
 	
 	def readSequenceFromFASTA(self):
@@ -71,6 +71,24 @@ class LoopModeller:
 		return strands
 
 	
+<<<<<<< HEAD
+	def readPDBnumbering(self):
+		resi = []
+		with open(self.TemplateFile) as f:
+			lines = f.readlines()
+			for i,l in enumerate(lines):
+				if re.search(r'^ATOM', l) and re.search(r'CA', l):
+					resnum = int(l[22:26])
+					resnam = "{0:3}".format(l[17:20])
+					chain  = l[21]
+					resi.append( (resnam, resnum, chain, l) )
+		for (bs, es) in self.strands:
+			strandSeq = "".join( self.sequence[int(bs):int(es)] )
+			for i, (res, num, cha, lin) in enumerate(resi):
+				pass
+
+		return resi
+=======
 	# def readPDBnumbering(self):
 	# 	resi = []
 	# 	with open(self.TemplateFile) as f:
@@ -87,6 +105,7 @@ class LoopModeller:
 				
 				
 	# 	return resi
+>>>>>>> 9dd30174067a0d6111a399fc40d9b80258c81770
 					
 	def make_template(self):
 		with open(self.ExtendedStrandsFile) as f:
@@ -96,40 +115,29 @@ class LoopModeller:
 			actresicount = 0
 			resicount = 0
 			lastresnum = None
-			first = True
 			dumping = False
-			n = len(lines)
-			for i in range(n):
+
+			for i in range(len(lines)):
 				l = lines[i]
-				nl = None
-				if i < n-1:
-					nl = lines[i+1]
 				if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
 					resnum = int(l[22:26])
-					nextresnum = None
-					if (nl[0:4] == 'ATOM' or nl[0:4] == 'HETA'):
-						nextresnum = int(nl[22:26])
-					if first:
-						dumping = self.checkifdumping(actresicount)
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-							atomcount += 1
-							first = False
-					elif (resnum == nextresnum):
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-							atomcount += 1
-					elif nextresnum is not None:
-						dumping = self.checkifdumping(actresicount)
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-							atomcount += 1
-							resicount += 1
-						actresicount += 1
+					if lastresnum is not None:
+						if (resnum == lastresnum):
+							if dumping:
+								self.dump(f, l, atomcount, resicount)
+								atomcount += 1
+						else:
+							actresicount += 1
+							dumping = self.checkifdumping(actresicount)
+							if dumping:
+								self.dump(f, l, atomcount, resicount)
+								atomcount += 1
+								resicount += 1		
 					else:
 						dumping = self.checkifdumping(actresicount)
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
+							atomcount += 1
 					lastresnum = resnum
 
 	def checkifdumping(self, i):
@@ -138,7 +146,7 @@ class LoopModeller:
 			if i >= s[0] and i < s[1]:
 				dumping = True
 		return(dumping)
-					
+
 	def dump(self, f, l, a, r):
 		"""
 		f is filehandle
@@ -169,9 +177,14 @@ class LoopModeller:
 				# ß-barrel extension
 				# loop longer than 10 resideus
 				if dist > 10:
+<<<<<<< HEAD
+					end_cur = int(end_cur) + 4
+					beg_nex = int(beg_nex) - 4
+					dist = dist - 8
+=======
 					end_cur = end_cur + 4
 					beg_nex = beg_nex - 4
-					dist = dist - 8
+>>>>>>> 9dd30174067a0d6111a399fc40d9b80258c81770
 					self.strands[i] = (beg_cur, end_cur)
 					self.strands[i+1] = (beg_nex, end_nex)
 				# odd-loop shorter than 10 but longer than 2
@@ -296,7 +309,7 @@ class LoopModeller:
 		aLoop.loop.starting_model = 1
 		aLoop.loop.ending_model = self.nModels
 		# define loops modelling refinement level
-		aLoop.loop.md_level = refine.very_slow
+		a.loop.md_level = refine.very_slow
 		# model loops
 		aLoop.make()
 
