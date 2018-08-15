@@ -30,7 +30,7 @@ class LoopModeller:
 		self.makendxedstrands()
 		self.exstrands = None
 		self.extendBetaStrands3()
-		self.printstrands()
+		self.seqstrands = None
 		self.extendBetaStrands()
 		self.printstrands()
 		self.AlignmentFile = self.buildAlignmentFile()
@@ -239,6 +239,7 @@ class LoopModeller:
 	def printstrands(self):
 		for i in range(len(self.strands)):
 			print(self.strands[i])
+			print(self.seqstrands[i])
 			print(self.ndxedstrands[i])
 			print(self.exstrands[i])
 			print("")
@@ -293,16 +294,16 @@ class LoopModeller:
 
 
 	def extendBetaStrands(self):
-		n = len(self.strands)
+		n = len(self.seqstrands)
 		for i in range(n): # access by index to prevent weird behaviour when modifying next strands
-			(beg_cur, end_cur) = self.strands[i]
+			(beg_cur, end_cur) = self.seqstrands[i]
 			if i == 0:
 				if beg_cur >= 4:
 					beg_cur -= 4
 				else:
 					beg_cur = 0
 			if i < n-1:
-				(beg_nex, end_nex) = self.strands[i+1]
+				(beg_nex, end_nex) = self.seqstrands[i+1]
 				dist = beg_nex - end_cur
 
 				# ß-barrel extension
@@ -311,8 +312,8 @@ class LoopModeller:
 					end_cur = end_cur + 4
 					beg_nex = beg_nex - 4
 					dist = dist - 8
-					self.strands[i] = (beg_cur, end_cur)
-					self.strands[i+1] = (beg_nex, end_nex)
+					self.seqstrands[i] = (beg_cur, end_cur)
+					self.seqstrands[i+1] = (beg_nex, end_nex)
 				# odd-loop shorter than 10 but longer than 2
 				elif dist > 3 and dist % 2 != 0:
 					# odd numbered loop
@@ -321,8 +322,8 @@ class LoopModeller:
 						beg_nex = beg_nex - 1
 						dist = dist - 2
 
-					self.strands[i] = (beg_cur, end_cur)
-					self.strands[i+1] = (beg_nex, end_nex)
+					self.seqstrands[i] = (beg_cur, end_cur)
+					self.seqstrands[i+1] = (beg_nex, end_nex)
 				
 				elif dist > 2 and dist % 2 == 0:
 					# even numbered loop	
@@ -331,8 +332,8 @@ class LoopModeller:
 						beg_nex = beg_nex - 1
 						dist = dist - 2
 
-					self.strands[i] = (beg_cur, end_cur)
-					self.strands[i+1] = (beg_nex, end_nex)			
+					self.seqstrands[i] = (beg_cur, end_cur)
+					self.seqstrands[i+1] = (beg_nex, end_nex)			
 				
 				else:
 					pass
@@ -342,8 +343,8 @@ class LoopModeller:
 						end_cur += 4
 					else:
 						end_cur = n
-					self.strands[i] = (beg_cur, end_cur)
-		print self.strands
+					self.seqstrands[i] = (beg_cur, end_cur)
+		#print self.seqstrands
 
 
 	def buildAlignFile2(self):
