@@ -31,9 +31,9 @@ class LoopModeller:
 		# self.resi = self.readPDBnumbering()
 		
 		# executes LoopModelling pipeline with Modeller
-		# self.modelBetaBarrel()
-		# self.modelLoops()
-		# self.selectModel()
+		self.modelBetaBarrel()
+		self.modelLoops()
+		self.selectModel()
 
 	
 	def readSequenceFromFASTA(self):
@@ -285,7 +285,7 @@ class LoopModeller:
 		aLoop.loop.starting_model = 1
 		aLoop.loop.ending_model = self.nModels
 		# define loops modelling refinement level
-		a.loop.md_level = refine.very_slow
+		aLoop.loop.md_level = refine.very_slow
 		# model loops
 		aLoop.make()
 
