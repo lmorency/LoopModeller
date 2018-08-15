@@ -235,11 +235,15 @@ class LoopModeller:
 		# print(self.exstrands)
 
 	def printstrands(self):
+		tmpstrands = self.strands
+		self.extendBetaStrands()
 		for i in range(len(self.strands)):
+			print(tmpstrands[i])
 			print(self.strands[i])
 			print(self.ndxedstrands[i])
 			print(self.exstrands[i])
 			print("")
+		self.strands = tmpstrands
 		print(len(self.sequence))
 
 	def extendBetaStrands2(self):
@@ -343,6 +347,9 @@ class LoopModeller:
 					self.strands[i] = (beg_cur, end_cur)
 		print self.strands
 
+
+	def buildAlignFile2(self):
+		return()
 	
 	def buildAlignmentFile(self):
 		# fills alignment[] with gaps
