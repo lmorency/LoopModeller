@@ -356,6 +356,6 @@ if __name__ == "__main__":
 			log.verbose()
 
 		LoopModel = LoopModeller(FastaID, FastaFile, StrandsFile, TemplateFile, False, nModels)
-		LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, ScrambledTemplateFile, True, nModels)
-		LoopModels.append( (LoopModel,LoopModelScrambled) )
+		#LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, ScrambledTemplateFile, True, nModels)
+		#LoopModels.append( (LoopModel,LoopModelScrambled) )
 
