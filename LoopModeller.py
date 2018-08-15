@@ -4,8 +4,9 @@ import argparse
 import glob
 import os
 import re
+
 from PDBindexer import PDBindexer
-# from Bio.PDB import *
+
 from modeller import *
 from modeller.automodel import *
 
@@ -37,8 +38,6 @@ class LoopModeller:
 		self.make_template()
 		self.loops = None
 		self.makeloops()
-		exit()
-		# self.resi = self.readPDBnumbering()
 		
 		# executes LoopModelling pipeline with Modeller
 		self.modelBetaBarrel()
@@ -313,7 +312,8 @@ class LoopModeller:
 		aBetaBerrelModel.repeat_optimization = 20
 		aBetaBerrelModel.max_molpdf = 1e6
 		# define refinement level
-		aBetaBerrelModel.md_level = refine.very_slow
+		# aBetaBerrelModel.md_level = refine.very_slow
+		aBetaBerrelModel.md_level = refine.very_fast
 		# model ß-barrel
 		aBetaBerrelModel.make()
 
@@ -326,16 +326,18 @@ class LoopModeller:
 		class MyLoop(loopmodel):
 		    # This routine picks the residues to be refined by loop modeling
 		    def select_loop_atoms(self):
-		        return selection(selectedResidues)
+		        return selection( eval(selectedResidues) )
 			def special_patches(self, aln):
 					for chain in self.chains:
 						chain.name = 'A'		
 		# define ß-berrel loops' modelling parameters
-		aLoop = MyLoop(self.ModellerEnvironment, inimodel=self.TemplateFile, sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
+		# aLoop = MyLoop(self.ModellerEnv, inimodel=self.TemplateFile, sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
+		aLoop = MyLoop(self.ModellerEnv, inimodel="A9WGN5_full.B99990001.pdb", sequence=self.FastaFile, loop_assess_methods=assess.DOPE)
 		aLoop.loop.starting_model = 1
 		aLoop.loop.ending_model = self.nModels
 		# define loops modelling refinement level
-		aLoop.loop.md_level = refine.very_slow
+		# aLoop.loop.md_level = refine.very_slow
+		aLoop.loop.md_level = refine.very_fast
 		# model loops
 		aLoop.make()
 
