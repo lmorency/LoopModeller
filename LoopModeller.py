@@ -86,76 +86,6 @@ class LoopModeller:
 		# print(strands)
 		return strands
 
-	
-	# def readPDBnumbering(self):
-	# 	resi = []
-	# 	with open(self.TemplateFile) as f:
-	# 		lines = f.readlines()
-	# 		for i,l in enumerate(lines):
-	# 			if re.search(r'^ATOM', l) and re.search(r'CA', l):
-	# 				resnum = int(l[22:26])
-	# 				resnam = "{0:3}".format(l[17:20])
-	# 				chain  = l[21]
-	# 				resi.append( (resnam, resnum, chain, l) )
-	# 	for (bs, es) in self.strands:
-	# 		strandSeq = "".join(self.sequence[int(bs):int(es)])
-	# 		for i, (res, num, cha, lin) in enumerate(resi):
-				
-				
-	# 	return resi
-					
-	# def make_template(self):
-	# 	with open(self.ExtendedStrandsFile) as f:
-	# 		lines = f.readlines()
-	# 	with open(self.TemplateFile, "w") as f:
-	# 		atomcount = 0
-	# 		actresicount = 0
-	# 		resicount = 0
-	# 		lastresnum = None
-	# 		first = True
-	# 		dumping = False
-	# 		n = len(lines)
-	# 		for i in range(n):
-	# 			l = lines[i]
-	# 			nl = None
-	# 			if i < n-1:
-	# 				nl = lines[i+1]
-	# 			if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
-	# 				resnum = int(l[22:26])
-	# 				print(resnum)
-	# 				nextresnum = None
-	# 				if (nl[0:4] == 'ATOM' or nl[0:4] == 'HETA'):
-	# 					nextresnum = int(nl[22:26])
-	# 					print(nextresnum)
-	# 				if first:
-	# 					print("here1")
-	# 					dumping = self.checkifdumping(actresicount)
-	# 					if dumping:
-	# 						self.dump(f, l, atomcount, resicount)
-	# 						atomcount += 1
-	# 						first = False
-	# 					elif nextresnum is not None and nextresnum != resnum:
-	# 						actresicount += 1
-	# 				elif (resnum == nextresnum):
-	# 					print("here2")
-	# 					if dumping:
-	# 						self.dump(f, l, atomcount, resicount)
-	# 						atomcount += 1
-	# 				elif nextresnum is not None:
-	# 					print("here3")
-	# 					dumping = self.checkifdumping(actresicount)
-	# 					if dumping:
-	# 						self.dump(f, l, atomcount, resicount)
-	# 						atomcount += 1
-	# 						resicount += 1
-	# 					actresicount += 1
-	# 				else:
-	# 					print("here4")
-	# 					dumping = self.checkifdumping(actresicount)
-	# 					if dumping:
-	# 						self.dump(f, l, atomcount, resicount)
-	# 				lastresnum = resnum
-
 	def make_template(self):
 		pdb = PDBindexer(self.ExtendedStrandsFile)
 		resis = pdb.resis
@@ -251,54 +181,7 @@ class LoopModeller:
 			print("")
 		print(len(self.sequence))
 
-	def extendBetaStrands2(self):
-		n = len(self.strands)
-		resicount = 0
-		for i in range(n):
-			(xi, yi) = self.strands[i]
-			li = yi-xi
-			if i == 0:
-				if xi >= 4:
-					xi = 0
-					li += 4
-				else:
-					li += xi
-					xi = 0
-			elif i == n-1:
-				if yi <= n-4:
-					yi += 4
-					li += 4
-				else:
-					li += n-yi
-					yi = n
-			else:
-				(xj, yj) = self.strands[i+1]
-				lloop = xj-yi
-				if lloop > 10:
-					yi +=4
-					li +=4
-					xj -=4
-				elif lloop > 3 and lloop % 2 != 0:
-					while lloop > 3:
-						yi += 1
-						li += 1
-						xj -= 1
-						lloop -= 2
-				elif lloop > 2 and lloop % 2 == 0:
-					while lloop > 2:
-						yi += 1
-						li += 1
-						xj -= 1
-						lloop -= 2
-				self.strands[i+1] = (xj, yj)
-
-			self.strands[i] = (resicount+xi, resicount+xj)
-			# self.
-
-
-
-
-
+	
 	def extendBetaStrands(self):
 		n = len(self.seqstrands)
 		for i in range(n): # access by index to prevent weird behaviour when modifying next strands
