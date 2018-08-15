@@ -93,6 +93,7 @@ class LoopModeller:
 			lines = f.readlines()
 		with open(self.TemplateFile, "w") as f:
 			atomcount = 0
+			actresicount = 0
 			resicount = 0
 			lastresnum = None
 			dumping = False
@@ -105,16 +106,19 @@ class LoopModeller:
 						if (resnum == lastresnum):
 							if dumping:
 								self.dump(f, l, atomcount, resicount)
+								atomcount += 1
 						else:
-							resicount += 1
-							dumping = self.checkifdumping(resicount)
+							actresicount += 1
+							dumping = self.checkifdumping(actresicount)
 							if dumping:
-								self.dump(f, l, atomcount, resicount)		
+								self.dump(f, l, atomcount, resicount)
+								atomcount += 1
+								resicount += 1		
 					else:
-						dumping = self.checkifdumping(resicount)
+						dumping = self.checkifdumping(actresicount)
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
-					atomcount += 1
+							atomcount += 1
 					lastresnum = resnum
 
 	def checkifdumping(self, i):
