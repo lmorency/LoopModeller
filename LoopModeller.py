@@ -118,6 +118,7 @@ class LoopModeller:
 							self.dump(f, l, atomcount, resicount)
 							atomcount += 1
 							first = False
+						elif nextresnum is not None and nextresnum
 					elif (resnum == nextresnum):
 						print("here2")
 						if dumping:
