@@ -40,7 +40,7 @@ class LoopModeller:
 		self.makeloops()
 		
 		# executes LoopModelling pipeline with Modeller
-		self.modelBetaBarrel()
+		# self.modelBetaBarrel()
 		self.modelLoops()
 		self.selectModel()
 
@@ -278,7 +278,7 @@ class LoopModeller:
 					loops.append((j+1, len(self.sequence)))
 			else:
 				nexti = self.seqstrands[k+1][0]
-				loops.append((j+1, i))
+				loops.append((i, j+1))
 		self.loops = loops
 
 	def formatLoopResidues(self):
@@ -320,7 +320,7 @@ class LoopModeller:
 
 	def modelLoops(self):
 		selectedResidues = self.formatLoopResidues()	
-		
+		print(selectedResidues)
 		# Create a new class based on 'loopmodel' so that we can redefine
 		# select_loop_atoms (necessary)
 		class MyLoop(loopmodel):
