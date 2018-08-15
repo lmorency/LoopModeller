@@ -156,7 +156,7 @@ class LoopModeller:
 		"""
 		f.write(l[0:6] +
 				"{0: 5d}".format(a+1) +
-				l[12:22] +
+				l[11:22] +
 				"{0: 4d}".format(r+1) +
 				l[26:])
 
