@@ -96,57 +96,71 @@ class LoopModeller:
 				
 	# 	return resi
 					
+	# def make_template(self):
+	# 	with open(self.ExtendedStrandsFile) as f:
+	# 		lines = f.readlines()
+	# 	with open(self.TemplateFile, "w") as f:
+	# 		atomcount = 0
+	# 		actresicount = 0
+	# 		resicount = 0
+	# 		lastresnum = None
+	# 		first = True
+	# 		dumping = False
+	# 		n = len(lines)
+	# 		for i in range(n):
+	# 			l = lines[i]
+	# 			nl = None
+	# 			if i < n-1:
+	# 				nl = lines[i+1]
+	# 			if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
+	# 				resnum = int(l[22:26])
+	# 				print(resnum)
+	# 				nextresnum = None
+	# 				if (nl[0:4] == 'ATOM' or nl[0:4] == 'HETA'):
+	# 					nextresnum = int(nl[22:26])
+	# 					print(nextresnum)
+	# 				if first:
+	# 					print("here1")
+	# 					dumping = self.checkifdumping(actresicount)
+	# 					if dumping:
+	# 						self.dump(f, l, atomcount, resicount)
+	# 						atomcount += 1
+	# 						first = False
+	# 					elif nextresnum is not None and nextresnum != resnum:
+	# 						actresicount += 1
+	# 				elif (resnum == nextresnum):
+	# 					print("here2")
+	# 					if dumping:
+	# 						self.dump(f, l, atomcount, resicount)
+	# 						atomcount += 1
+	# 				elif nextresnum is not None:
+	# 					print("here3")
+	# 					dumping = self.checkifdumping(actresicount)
+	# 					if dumping:
+	# 						self.dump(f, l, atomcount, resicount)
+	# 						atomcount += 1
+	# 						resicount += 1
+	# 					actresicount += 1
+	# 				else:
+	# 					print("here4")
+	# 					dumping = self.checkifdumping(actresicount)
+	# 					if dumping:
+	# 						self.dump(f, l, atomcount, resicount)
+	# 				lastresnum = resnum
+
 	def make_template(self):
-		with open(self.ExtendedStrandsFile) as f:
-			lines = f.readlines()
+		pdb = PDBindexer(self.ExtendedStrandsFile)
+		resis = pdb.resis
+		resicount = 0
+		atomcount = 0
 		with open(self.TemplateFile, "w") as f:
-			atomcount = 0
-			actresicount = 0
-			resicount = 0
-			lastresnum = None
-			first = True
-			dumping = False
-			n = len(lines)
-			for i in range(n):
-				l = lines[i]
-				nl = None
-				if i < n-1:
-					nl = lines[i+1]
-				if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
-					resnum = int(l[22:26])
-					print(resnum)
-					nextresnum = None
-					if (nl[0:4] == 'ATOM' or nl[0:4] == 'HETA'):
-						nextresnum = int(nl[22:26])
-						print(nextresnum)
-					if first:
-						print("here1")
-						dumping = self.checkifdumping(actresicount)
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-							atomcount += 1
-							first = False
-						elif nextresnum is not None and nextresnum != resnum:
-							actresicount += 1
-					elif (resnum == nextresnum):
-						print("here2")
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-							atomcount += 1
-					elif nextresnum is not None:
-						print("here3")
-						dumping = self.checkifdumping(actresicount)
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-							atomcount += 1
-							resicount += 1
-						actresicount += 1
-					else:
-						print("here4")
-						dumping = self.checkifdumping(actresicount)
-						if dumping:
-							self.dump(f, l, atomcount, resicount)
-					lastresnum = resnum
+			for i in range(len(resis)):
+				if self.checkifdumping(i):
+					resi = resis[i]
+					for line in resi:
+						self.dump(f, line, atomcount, resicount)
+						atomcount += 1
+					resicount += 1
 
 	def checkifdumping(self, i):
 		dumping = False
