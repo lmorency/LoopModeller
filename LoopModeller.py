@@ -353,8 +353,7 @@ class LoopModeller:
 		#print self.seqstrands
 
 
-	def buildAlignFile2(self):
-		return()
+
 	
 	def buildAlignmentFile(self):
 		# fills alignment[] with gaps
@@ -363,7 +362,7 @@ class LoopModeller:
 			alignment.append("-")
 
 		# fill the structure with sequence when stranded (according to self.strands )
-		for (strand_beg, strand_end) in self.strands:
+		for (strand_beg, strand_end) in self.seqstrands:
 			for i in range(strand_beg, strand_end):
 				alignment[i] = self.sequence[i]
 		# output alignment *.pir file
