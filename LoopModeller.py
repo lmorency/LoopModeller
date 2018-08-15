@@ -190,7 +190,7 @@ class LoopModeller:
 			(i, j) = self.strands[k]
 			l = j-i + 8
 			self.ndxedstrands.append((actualjnexti, actualjnexti+l))
-			actualjnexti += l+1
+			actualjnexti += l
 		# print(self.ndxedstrands)
 
 	def extendBetaStrands3(self):
