@@ -213,7 +213,7 @@ class LoopModeller:
 				if oj <= seqlen-4:
 					j = nj
 				else:
-					j = nj-seqlen + oj
+					j = nj-seqlen + oj - 4
 			else:
 				(nextoi, nextoj) = self.strands[k+1]
 				lloop = nextoi-oj
