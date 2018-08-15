@@ -145,7 +145,8 @@ class LoopModeller:
 			if i == 0:
 				if beg_cur >= 4:
 					beg_cur -= 4
-				else beg_cur = 0
+				else:
+					beg_cur = 0
 			if i < n-1:
 				(beg_nex, end_nex) = self.strands[i+1]
 				dist = beg_nex - end_cur
