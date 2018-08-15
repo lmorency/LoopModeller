@@ -4,6 +4,7 @@ import argparse
 import glob
 import os
 import re
+from PDBindexer import PDBindexer
 # from Bio.PDB import *
 from modeller import *
 from modeller.automodel import *
@@ -224,12 +225,7 @@ class LoopModeller:
 			print(self.strands[i])
 			print(self.ndxedstrands[i])
 			print(self.exstrands[i])
-			print()
-
-
-
-
-
+			print("")
 
 	def extendBetaStrands2(self):
 		n = len(self.strands)
