@@ -80,10 +80,10 @@ class LoopModeller:
 					chain  = l[21]
 					resi.append( (resnam, resnum, chain, l) )
 		for (bs, es) in self.strands:
-			strandSeq = "".join(self.sequence[int(bs):int(es)])
+			strandSeq = "".join( self.sequence[int(bs):int(es)] )
 			for i, (res, num, cha, lin) in enumerate(resi):
-				
-				
+				pass
+
 		return resi
 					
 
@@ -99,6 +99,7 @@ class LoopModeller:
 				if dist > 10:
 					end_cur = int(end_cur) + 4
 					beg_nex = int(beg_nex) - 4
+					dist = dist - 8
 					self.strands[i] = (beg_cur, end_cur)
 					self.strands[i+1] = (beg_nex, end_nex)
 				# odd-loop shorter than 10 but longer than 2
