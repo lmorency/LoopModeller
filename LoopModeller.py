@@ -217,7 +217,7 @@ class LoopModeller:
 				self.strands[i+1] = (xj, yj)
 
 			self.strands[i] = (resicount+xi, resicount+xj)
-			self.
+			# self.
 
 
 
