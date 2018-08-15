@@ -26,7 +26,7 @@ class LoopModeller:
 		self.sequence = self.readSequenceFromFASTA()
 		self.strands = self.readStrandsFile()
 		self.ndxedstrands = None
-		self.makendxedstrands
+		self.makendxedstrands()
 		exit()
 		self.extendBetaStrands()
 		self.AlignmentFile = self.buildAlignmentFile()
