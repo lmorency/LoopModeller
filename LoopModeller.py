@@ -240,6 +240,7 @@ class LoopModeller:
 			print(self.ndxedstrands[i])
 			print(self.exstrands[i])
 			print("")
+		print(len(self.sequence))
 
 	def extendBetaStrands2(self):
 		n = len(self.strands)
