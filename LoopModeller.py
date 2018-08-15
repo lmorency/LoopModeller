@@ -30,7 +30,7 @@ class LoopModeller:
 		self.makendxedstrands()
 		self.exstrands = None
 		self.extendBetaStrands3()
-		self.seqstrands = None
+		self.seqstrands = self.deepcopystrands()
 		self.extendBetaStrands()
 		self.printstrands()
 		self.AlignmentFile = self.buildAlignmentFile()
@@ -42,6 +42,12 @@ class LoopModeller:
 		self.modelBetaBarrel()
 		self.modelLoops()
 		self.selectModel()
+
+	def deepcopystrands(self):
+		tmp = []
+		for s in self.strands:
+			tmp.append((s[0], s[1]))
+		return tmp 
 
 	
 	def readSequenceFromFASTA(self):
