@@ -71,6 +71,24 @@ class LoopModeller:
 		return strands
 
 	
+<<<<<<< HEAD
+	def readPDBnumbering(self):
+		resi = []
+		with open(self.TemplateFile) as f:
+			lines = f.readlines()
+			for i,l in enumerate(lines):
+				if re.search(r'^ATOM', l) and re.search(r'CA', l):
+					resnum = int(l[22:26])
+					resnam = "{0:3}".format(l[17:20])
+					chain  = l[21]
+					resi.append( (resnam, resnum, chain, l) )
+		for (bs, es) in self.strands:
+			strandSeq = "".join( self.sequence[int(bs):int(es)] )
+			for i, (res, num, cha, lin) in enumerate(resi):
+				pass
+
+		return resi
+=======
 	# def readPDBnumbering(self):
 	# 	resi = []
 	# 	with open(self.TemplateFile) as f:
@@ -87,6 +105,7 @@ class LoopModeller:
 				
 				
 	# 	return resi
+>>>>>>> 9dd30174067a0d6111a399fc40d9b80258c81770
 					
 	def make_template(self):
 		with open(self.ExtendedStrandsFile) as f:
@@ -127,7 +146,7 @@ class LoopModeller:
 			if i >= s[0] and i < s[1]:
 				dumping = True
 		return(dumping)
-					
+
 	def dump(self, f, l, a, r):
 		"""
 		f is filehandle
@@ -158,9 +177,14 @@ class LoopModeller:
 				# ß-barrel extension
 				# loop longer than 10 resideus
 				if dist > 10:
+<<<<<<< HEAD
+					end_cur = int(end_cur) + 4
+					beg_nex = int(beg_nex) - 4
+					dist = dist - 8
+=======
 					end_cur = end_cur + 4
 					beg_nex = beg_nex - 4
-					dist = dist - 8
+>>>>>>> 9dd30174067a0d6111a399fc40d9b80258c81770
 					self.strands[i] = (beg_cur, end_cur)
 					self.strands[i+1] = (beg_nex, end_nex)
 				# odd-loop shorter than 10 but longer than 2
