@@ -16,7 +16,8 @@ class LoopModeller:
 		self.FastaID = FastaID
 		self.FastaFile = FastaFile
 		self.StrandsFile = StrandsFile
-		self.TemplateFile = TemplateFile
+		self.ExtendedStrandsFile = TemplateFile
+		self.TemplateFile = "{0}_renumbered_extended.pdb".format(self.FastaID)
 		self.isScrambled = isScrambled
 		self.nModels = nModels
 		self.BasePath = os.getcwd()
@@ -26,12 +27,13 @@ class LoopModeller:
 		self.strands = self.readStrandsFile()
 		self.extendBetaStrands()
 		self.AlignmentFile = self.buildAlignmentFile()
-		self.resi = self.readPDBnumbering()
+		self.make_template()
+		# self.resi = self.readPDBnumbering()
 		
 		# executes LoopModelling pipeline with Modeller
-		self.modelBetaBarrel()
-		self.modelLoops()
-		self.selectModel()
+		# self.modelBetaBarrel()
+		# self.modelLoops()
+		# self.selectModel()
 
 	
 	def readSequenceFromFASTA(self):
@@ -64,49 +66,103 @@ class LoopModeller:
 			lines = f.readlines()
 			for l in lines:
 				strand = re.search(r'(\d+)\s+(\d+)',l).groups(0)
-				strands.append(strand)
+				strands.append((int(strand[0]),int(strand[1])))
 		print(strands)
 		return strands
 
 	
-	def readPDBnumbering(self):
-		resi = []
-		with open(self.TemplateFile) as f:
-			lines = f.readlines()
-			for i,l in enumerate(lines):
-				if re.search(r'^ATOM', l) and re.search(r'CA', l):
-					resnum = int(l[22:26])
-					resnam = "{0:3}".format(l[17:20])
-					chain  = l[21]
-					resi.append( (resnam, resnum, chain, l) )
-		for (bs, es) in self.strands:
-			strandSeq = "".join(self.sequence[int(bs):int(es)])
-			for i, (res, num, cha, lin) in enumerate(resi):
+	# def readPDBnumbering(self):
+	# 	resi = []
+	# 	with open(self.TemplateFile) as f:
+	# 		lines = f.readlines()
+	# 		for i,l in enumerate(lines):
+	# 			if re.search(r'^ATOM', l) and re.search(r'CA', l):
+	# 				resnum = int(l[22:26])
+	# 				resnam = "{0:3}".format(l[17:20])
+	# 				chain  = l[21]
+	# 				resi.append( (resnam, resnum, chain, l) )
+	# 	for (bs, es) in self.strands:
+	# 		strandSeq = "".join(self.sequence[int(bs):int(es)])
+	# 		for i, (res, num, cha, lin) in enumerate(resi):
 				
 				
-		return resi
+	# 	return resi
 					
+	def make_template(self):
+		with open(self.ExtendedStrandsFile) as f:
+			lines = f.readlines()
+		with open(self.TemplateFile, "w") as f:
+			atomcount = 0
+			resicount = 0
+			lastresnum = None
+			dumping = False
+
+			for i in range(len(lines)):
+				l = lines[i]
+				if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
+					resnum = int(l[22:26])
+					if lastresnum is not None:
+						if (resnum == lastresnum):
+							if dumping:
+								dump(f, l, atomcount, resicount)
+						else:
+							resicount += 1
+							dumping = self.checkifdumping(resicount)
+							if dumping:
+								dump(f, l, atomcount, resicount)		
+					else:
+						dumping = self.checkifdumping(resicount)
+						if dumping:
+							dump(f, l, atomcount, resicount)
+					atomcount += 1
+					lastresnum = resnum
+
+	def checkifdumping(self, i):
+		dumping = False
+		for s in self.strands:
+			if i >= s[0] and i < s[1]:
+				dumping = True
+		return(dumping)
+
+	def dump(self, f, l, a, r):
+		"""
+		f is filehandle
+		l original line to dump
+		a is current atom number (starting at 0)
+		r is current resi number (starting at 0)
+		"""
+		f.write(l[0:6] +
+				"{0: 5d}".format(a+1) +
+				l[12:22] +
+				"{0: 4d}".format(r+1) +
+				l[26:])
 
 	
 	def extendBetaStrands(self):
-		for i, (beg_cur, end_cur) in enumerate(self.strands):
-			if i < len(self.strands)-1:
+		n = len(self.strands)
+		for i in range(n): # access by index to prevent weird behaviour when modifying next strands
+			(beg_cur, end_cur) = self.strands[i]
+			if i == 0:
+				if beg_cur >= 4:
+					beg_cur -= 4
+				else beg_cur = 0
+			if i < n-1:
 				(beg_nex, end_nex) = self.strands[i+1]
-				dist = int(beg_nex)-int(end_cur) 
+				dist = beg_nex - end_cur
 
 				# ß-barrel extension
 				# loop longer than 10 resideus
 				if dist > 10:
-					end_cur = int(end_cur) + 4
-					beg_nex = int(beg_nex) - 4
+					end_cur = end_cur + 4
+					beg_nex = beg_nex - 4
 					self.strands[i] = (beg_cur, end_cur)
 					self.strands[i+1] = (beg_nex, end_nex)
 				# odd-loop shorter than 10 but longer than 2
 				elif dist > 3 and dist % 2 != 0:
 					# odd numbered loop
 					while dist > 3:
-						end_cur = int(end_cur) + 1
-						beg_nex = int(beg_nex) - 1
+						end_cur = end_cur + 1
+						beg_nex = beg_nex - 1
 						dist = dist - 2
 
 					self.strands[i] = (beg_cur, end_cur)
@@ -115,8 +171,8 @@ class LoopModeller:
 				elif dist > 2 and dist % 2 == 0:
 					# even numbered loop	
 					while dist > 2:
-						end_cur = int(end_cur) + 1
-						beg_nex = int(beg_nex) - 1
+						end_cur = end_cur + 1
+						beg_nex = beg_nex - 1
 						dist = dist - 2
 
 					self.strands[i] = (beg_cur, end_cur)
@@ -124,6 +180,13 @@ class LoopModeller:
 				
 				else:
 					pass
+			else:
+				if end_cur < n:
+					if end_cur <= n-4:
+						end_cur += 4
+					else:
+						end_cur = n
+					self.strands[i] = (beg_cur, end_cur)
 		print self.strands
 
 	
@@ -135,7 +198,7 @@ class LoopModeller:
 
 		# fill the structure with sequence when stranded (according to self.strands )
 		for (strand_beg, strand_end) in self.strands:
-			for i in range( (int(strand_beg)), (int(strand_end)) ):
+			for i in range(strand_beg, strand_end):
 				alignment[i] = self.sequence[i]
 		# output alignment *.pir file
 		AlignmentFile = "{0}/{1}.pir".format(self.BasePath, self.FastaID)
