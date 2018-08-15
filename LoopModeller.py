@@ -27,8 +27,9 @@ class LoopModeller:
 		self.strands = self.readStrandsFile()
 		self.ndxedstrands = None
 		self.makendxedstrands()
+		self.exstrands = None
+		self.extendBetaStrands3()
 		exit()
-		self.extendBetaStrands()
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
 		# self.resi = self.readPDBnumbering()
@@ -69,7 +70,9 @@ class LoopModeller:
 			lines = f.readlines()
 			for l in lines:
 				strand = re.search(r'(\d+)\s+(\d+)',l).groups(0)
-				strands.append((int(strand[0]),int(strand[1])))
+				# the original strand i,j are included and the sequence starts
+				# at 1. the -1 and +1 transform them to python array slices
+				strands.append((int(strand[0])-1,int(strand[1])+1))
 		print(strands)
 		return strands
 
@@ -178,6 +181,7 @@ class LoopModeller:
 		n = len(self.strands)
 		nextoffset = 0
 		seqlen = len(self.sequence)
+		self.exstrands = []
 		for k in range(n):
 			(oi, oj) = self.strands[k]
 			(ni, nj) = self.ndxedstrands[k]
@@ -190,6 +194,32 @@ class LoopModeller:
 			else:
 				i = ni+4 - nextoffset
 			if k == n-1:
+				if oj <= seqlen-4:
+					j = nj
+				else:
+					j = nj-seqlen + oj
+			else:
+				(nextoi, nextoj) = self.strands[k+1]
+				lloop = nextoi-oj
+				if lloop > 10:
+					j = nj
+					nextoffset = 4
+				elif lloop > 3 and lloop % 2 != 0:
+					extension = (lloop-3)/2
+					j = nj-4 + extension
+					nextoffset = extension
+				elif lloop > 2 and lloop % 2 == 0:
+					extension = (lloop-2)/2
+					j = nj-4 + extension
+					nextoffset = extension
+				else:
+					j = nj-4
+					nextoffset = 0
+			self.exstrands.append((i, j))
+		print(self.exstrands)
+
+
+
 
 
 
