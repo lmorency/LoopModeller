@@ -161,6 +161,45 @@ class LoopModeller:
 				l[26:])
 
 	
+	def extendBetaStrands2(self):
+		n = len(self.strands)
+		resicount = 0
+		for i in range(n):
+			(xi, yi) = self.strands[i]
+			li = yi-xi
+			if i == 0:
+				if xi >= 4:
+					xi = 0
+					li += 4
+				else:
+					li += xi
+					xi = 0
+			elif i == n-1:
+				if yi <= n-4:
+					yi += 4
+					li += 4
+				else:
+					li += n-yi
+					yi = n
+			else:
+				(xj, yj) = self.strands[i+1]
+				lloop = xj-yi
+				if lloop > 10:
+					yi +=4
+					li +=4
+					xj -=4
+				elif lloop > 3 and lloop % 2 != 0:
+					while lloop > 3:
+						yi += 1
+						xj -= 1
+						lloop -= 2
+				elif lloop > 2 and lloop % 2 == 0:
+					
+
+
+
+
+
 	def extendBetaStrands(self):
 		n = len(self.strands)
 		for i in range(n): # access by index to prevent weird behaviour when modifying next strands
