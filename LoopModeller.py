@@ -24,7 +24,9 @@ class LoopModeller:
 		self.nModels = nModels
 		self.BasePath = os.getcwd()
 		self.ModellerEnv = environ()
+		self.LoopModels = []
 
+		# class attributes to be used internally
 		self.numbering = [] # self.numbering will be filled form [1,N] in readSequenceFromFASTA
 		self.sequence = self.readSequenceFromFASTA()
 		self.strands = self.readStrandsFile()
@@ -35,8 +37,12 @@ class LoopModeller:
 		self.seqstrands = self.deepcopystrands()
 		self.extendBetaStrands()
 		self.printstrands()
+		
+		# modeller's alignment file writing
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
+		
+		# loops definition
 		self.loops = None
 		self.makeloops()
 		
@@ -44,6 +50,8 @@ class LoopModeller:
 		self.modelBetaBarrel()
 		self.modelLoops()
 		self.selectModel()
+
+	
 
 	def deepcopystrands(self):
 		tmp = []
@@ -306,8 +314,8 @@ class LoopModeller:
 		# define ß-berrel modelling parameters
 		aBetaBarrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
 		aBetaBarrelModel.starting_model = 1                 # index of the first model
-		# aBetaBarrelModel.ending_model = self.nModels		# index of the last model
 		aBetaBarrelModel.ending_model = 1        			# index of the last model
+		# aBetaBarrelModel.ending_model = self.nModels		# index of the last model
 		# simulation parameters
 		aBetaBarrelModel.library_schedule = autosched.slow
 		aBetaBarrelModel.max_var_iterations = 300
@@ -336,14 +344,14 @@ class LoopModeller:
 		# define ß-berrel loops' modelling parameters
 		aLoop = MyLoop(self.ModellerEnv, inimodel=self.BetaBarrelModel.get_model_filename(sequence=self.FastaID + "_full",id1=9999,id2=1,file_ext='.pdb'), sequence=self.FastaID + "_full", loop_assess_methods=assess.DOPE)
 		aLoop.loop.starting_model = 1
-		aLoop.loop.ending_model = self.nModels+3
+		aLoop.loop.ending_model = self.nModels
 		# define loops modelling refinement level
 		aLoop.loop.md_level = refine.very_slow
 		# aLoop.loop.md_level = refine.very_fast
 		# model loops
 		aLoop.make()
-		# assign LoopModel to LoopModeller class
-		self.LoopModel.append( aLoop )
+		# assign LoopModels to LoopModeller class
+		self.LoopModels.append( aLoop )
 
 	def selectModel(self):
 		pass
@@ -385,14 +393,14 @@ if __name__ == "__main__":
 		elif not re.search(r'(\S+)\.pfa', FastaID) and not re.search(r'(\S+)\.fa', FastaID):
 			raise ValueError("The FASTA files must contain a FASTA identifier ID")
 		else:
-			FastaID = FastaID[0:6]
+			FastaID = re.search(r'(\S+)\.p*fa', FastaID).group[0]
+			# FastaID = FastaID[0:6]
 
-		# look form scrambled FASTA file and TEMPLATE PDB file
-		# ScrambledFastaFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(FastaFile)[1])
-		# if not os.path.exists(ScrambledFastaFile):
-		# 	raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledFastaFile))
+		# look form scrambled FASTA file
+		ScrambledFastaFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(FastaFile)[1])
+		if not os.path.exists(ScrambledFastaFile):
+			raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledFastaFile))
 		
-		# ScrambledTemplateFile = 
 		
 		# specifies the *.strands file
 		StrandsFile = args.strands
@@ -405,6 +413,11 @@ if __name__ == "__main__":
 		if not os.path.exists(TemplateFile):
 			raise ValueError("File {} does not exists.".format(TemplateFile))
 		
+		# look form scrambled FASTA file and TEMPLATE PDB file
+		ScrambledTemplateFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(TemplateFile)[1])
+		if not os.path.exists(ScrambledTemplateFile):
+			raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledTemplateFile))
+		
 		# specifies mumber of models to generate
 		nModels = args.nModels
 		if nModels < 1:
@@ -415,6 +428,7 @@ if __name__ == "__main__":
 			log.verbose()
 
 		LoopModel = LoopModeller(FastaID, FastaFile, StrandsFile, TemplateFile, False, nModels)
-		#LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, ScrambledTemplateFile, True, nModels)
-		#LoopModels.append( (LoopModel,LoopModelScrambled) )
+		LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, ScrambledTemplateFile, True, nModels)
+		# LoopModels.append( LoopModel )
+		LoopModels.append( (LoopModel,LoopModelScrambled) )
 
