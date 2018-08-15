@@ -106,20 +106,25 @@ class LoopModeller:
 					nl = lines[i+1]
 				if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
 					resnum = int(l[22:26])
+					print(resnum)
 					nextresnum = None
 					if (nl[0:4] == 'ATOM' or nl[0:4] == 'HETA'):
 						nextresnum = int(nl[22:26])
+						print(nextresnum)
 					if first:
+						print("here1")
 						dumping = self.checkifdumping(actresicount)
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
 							atomcount += 1
 							first = False
 					elif (resnum == nextresnum):
+						print("here2")
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
 							atomcount += 1
 					elif nextresnum is not None:
+						print("here3")
 						dumping = self.checkifdumping(actresicount)
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
@@ -127,6 +132,7 @@ class LoopModeller:
 							resicount += 1
 						actresicount += 1
 					else:
+						print("here4")
 						dumping = self.checkifdumping(actresicount)
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
