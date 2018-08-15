@@ -174,6 +174,23 @@ class LoopModeller:
 			actualjnexti += l+1
 		print(self.ndxedstrands)
 
+	def extendBetaStrands3(self):
+		n = len(self.strands)
+		nextoffset = 0
+		seqlen = len(self.sequence)
+		for k in range(n):
+			(oi, oj) = self.strands[k]
+			(ni, nj) = self.ndxedstrands[k]
+			(i, j) = (None, None)
+			if k == 0:
+				if oi >= 4:
+					i = ni
+				else:
+					i = ni-oi+4
+			else:
+				i = ni+4 - nextoffset
+			if k == n-1:
+
 
 
 	def extendBetaStrands2(self):
