@@ -71,8 +71,8 @@ class LoopModeller:
 			for l in lines:
 				strand = re.search(r'(\d+)\s+(\d+)',l).groups(0)
 				# the original strand i,j are included and the sequence starts
-				# at 1. the -1 and +1 transform them to python array slices
-				strands.append((int(strand[0])-1,int(strand[1])+1))
+				# at 1. the -1 and +0 transform them to python array slices
+				strands.append((int(strand[0])-1,int(strand[1])+0))
 		print(strands)
 		return strands
 
@@ -190,7 +190,7 @@ class LoopModeller:
 				if oi >= 4:
 					i = ni
 				else:
-					i = ni-oi+4
+					i = ni + 4-oi
 			else:
 				i = ni+4 - nextoffset
 			if k == n-1:
