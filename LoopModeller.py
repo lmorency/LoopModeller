@@ -31,9 +31,9 @@ class LoopModeller:
 		self.exstrands = None
 		self.extendBetaStrands3()
 		self.printstrands()
-		exit()
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
+		exit()
 		# self.resi = self.readPDBnumbering()
 		
 		# executes LoopModelling pipeline with Modeller
