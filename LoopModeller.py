@@ -96,29 +96,40 @@ class LoopModeller:
 			actresicount = 0
 			resicount = 0
 			lastresnum = None
+			first = True
 			dumping = False
 
 			for i in range(len(lines)):
 				l = lines[i]
+				nl = None
+				if i < n-1:
+					nl = lines[i+1]
 				if (l[0:4] == 'ATOM' or l[0:4] == 'HETA'):
 					resnum = int(l[22:26])
-					if lastresnum is not None:
-						if (resnum == lastresnum):
-							if dumping:
-								self.dump(f, l, atomcount, resicount)
-								atomcount += 1
-						else:
-							actresicount += 1
-							dumping = self.checkifdumping(actresicount)
-							if dumping:
-								self.dump(f, l, atomcount, resicount)
-								atomcount += 1
-								resicount += 1		
-					else:
+					nextresnum = None
+					if (nl[0:4] == 'ATOM' or nl[0:4] == 'HETA'):
+						nextresnum = int(nl[22:26])
+					if first:
 						dumping = self.checkifdumping(actresicount)
 						if dumping:
 							self.dump(f, l, atomcount, resicount)
 							atomcount += 1
+							first = False
+					elif (resnum == nextresnum):
+						if dumping:
+							self.dump(f, l, atomcount, resicount)
+							atomcount += 1
+					elif nextresnum is not None:
+						dumping = self.checkifdumping(actresicount)
+						if dumping:
+							self.dump(f, l, atomcount, resicount)
+							atomcount += 1
+							resicount += 1
+							actresicount += 1
+					else:
+						dumping = self.checkifdumping(actresicount)
+						if dumping:
+							self.dump(f, l, atomcount, resicount)
 					lastresnum = resnum
 
 	def checkifdumping(self, i):
