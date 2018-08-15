@@ -29,6 +29,7 @@ class LoopModeller:
 		self.makendxedstrands()
 		self.exstrands = None
 		self.extendBetaStrands3()
+		self.printstrands()
 		exit()
 		self.AlignmentFile = self.buildAlignmentFile()
 		self.make_template()
@@ -73,7 +74,7 @@ class LoopModeller:
 				# the original strand i,j are included and the sequence starts
 				# at 1. the -1 and +0 transform them to python array slices
 				strands.append((int(strand[0])-1,int(strand[1])+0))
-		print(strands)
+		# print(strands)
 		return strands
 
 	
@@ -175,7 +176,7 @@ class LoopModeller:
 			l = j-i + 8
 			self.ndxedstrands.append((actualjnexti, actualjnexti+l))
 			actualjnexti += l+1
-		print(self.ndxedstrands)
+		# print(self.ndxedstrands)
 
 	def extendBetaStrands3(self):
 		n = len(self.strands)
@@ -216,7 +217,14 @@ class LoopModeller:
 					j = nj-4
 					nextoffset = 0
 			self.exstrands.append((i, j))
-		print(self.exstrands)
+		# print(self.exstrands)
+
+	def printstrands(self):
+		for i in range(len(self.strands)):
+			print(self.strands[i])
+			print(self.ndxedstrands[i])
+			print(self.exstrands[i])
+			print()
 
 
 
