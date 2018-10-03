@@ -22,7 +22,11 @@ class LoopModeller:
 		self.TemplateFile = "{0}_renumbered_extended.pdb".format(self.FastaID)
 		self.isScrambled = isScrambled
 		self.nModels = nModels
-		self.BasePath = os.getcwd()
+		if not self.isScrambled:
+			self.BasePath = os.path.join(os.getcwd(), 'good')
+		else:
+			self.BasePath = os.path.join(os.getcwd(), 'scrambled')
+
 		self.ModellerEnv = environ()
 		self.LoopModels = []
 
@@ -96,6 +100,7 @@ class LoopModeller:
 		# print(strands)
 		return strands
 
+
 	def make_template(self):
 		pdb = PDBindexer(self.ExtendedStrandsFile)
 		resis = pdb.resis
@@ -110,6 +115,7 @@ class LoopModeller:
 						atomcount += 1
 					resicount += 1
 
+
 	def checkifdumping(self, i):
 		dumping = False
 		for s in self.exstrands:
@@ -117,6 +123,7 @@ class LoopModeller:
 				dumping = True
 		return(dumping)
 					
+
 	def dump(self, f, l, a, r):
 		"""
 		f is filehandle
@@ -130,6 +137,7 @@ class LoopModeller:
 				"{0: 4d}".format(r+1) +
 				l[26:])
 
+
 	def makendxedstrands(self):
 		self.ndxedstrands = []
 		n = len(self.strands)
@@ -140,6 +148,7 @@ class LoopModeller:
 			self.ndxedstrands.append((actualjnexti, actualjnexti+l))
 			actualjnexti += l
 		# print(self.ndxedstrands)
+
 
 	def extendBetaStrands3(self):
 		n = len(self.strands)
@@ -182,6 +191,7 @@ class LoopModeller:
 			self.exstrands.append((i, j))
 		# print(self.exstrands)
 
+
 	def printstrands(self):
 		for i in range(len(self.strands)):
 			print(self.strands[i])
@@ -192,6 +202,7 @@ class LoopModeller:
 		print(len(self.sequence))
 
 	
+
 	def extendBetaStrands(self):
 		n = len(self.seqstrands)
 		for i in range(n): # access by index to prevent weird behaviour when modifying next strands
@@ -244,8 +255,6 @@ class LoopModeller:
 						end_cur = n
 					self.seqstrands[i] = (beg_cur, end_cur)
 		#print self.seqstrands
-
-
 
 	
 	def buildAlignmentFile(self):
@@ -302,7 +311,7 @@ class LoopModeller:
 		return formattedRes
 
 	def modelBetaBarrel(self):
-		# redefine modeller's model class to rename chain
+		# redefines modeller's model class to rename chain to 'A'
 		class MyModel(automodel):
 			def special_patches(self, aln):
 				for chain in self.chains:
@@ -362,6 +371,8 @@ ArgParser = argparse.ArgumentParser()
 ArgParser.add_argument("-f", "--fasta", "--fasta-file", "--fastafile", metavar = "FASTA", type = str, help="Path to the <FASTA file>", required=True)
 ArgParser.add_argument("-s", "--strands", "--strands-file", "--strandsfile", metavar = "STRANDS", type = str, help="Path to the <STRANDS file>", required=True)
 ArgParser.add_argument("-t", "--template", "--PDB", "--template-file", "--PDB-file", metavar = "PDB", type=str, required=True, help="Path to the <PDB template file>")
+ArgParser.add_argument("-d", "--scrambledPDB", metavar = "SCRAMBLED_PDB", type=str, required=True, help="Path to the <PDB scrambled template file>")
+ArgParser.add_argument("-c", "--scrambled", "--scrambled-fasta", metavar = "SCRAMBLED", type=str, required=True, help="Path to the <SCRAMBLED FASTA FILE>")
 ArgParser.add_argument("-n", "--nModels", "--nModels", metavar="N", type=int, required=True, help="Number of models to be generated")
 ArgParser.add_argument("-v", "--verbose", action="store_true", help="Activates Modeller's verbose mode")
 
@@ -386,18 +397,22 @@ if __name__ == "__main__":
 	# loop each FastaFile
 	for FastaFile in FastaFiles:
 	
-		# specifies *.fa or *.fasta file
+		# specifies *.pfa or *.fasta file
 		FastaID = os.path.split(FastaFile)[1]
 		if not isinstance(FastaID, str):
 			raise TypeError("The FASTA ID ({}) must be a string".format(FastaID))
 		elif not re.search(r'(\S+)\.pfa', FastaID) and not re.search(r'(\S+)\.fa', FastaID):
 			raise ValueError("The FASTA files must contain a FASTA identifier ID")
 		else:
-			FastaID = re.search(r'(\S+)\.p*fa', FastaID).group[0]
+			# FastaID = re.search(r'(\S+)\.pfa', FastaID).group(0)
+			FastaID = os.path.splitext(FastaID)[0]
 			# FastaID = FastaID[0:6]
 
-		# look form scrambled FASTA file
-		ScrambledFastaFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(FastaFile)[1])
+		# look for scrambled FASTA file
+		if os.path.exists(args.scrambled):
+			ScrambledFastaFile = args.scrambled
+		else:
+			ScrambledFastaFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(FastaFile)[1])
 		if not os.path.exists(ScrambledFastaFile):
 			raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledFastaFile))
 		
@@ -414,14 +429,21 @@ if __name__ == "__main__":
 			raise ValueError("File {} does not exists.".format(TemplateFile))
 		
 		# look form scrambled FASTA file and TEMPLATE PDB file
-		ScrambledTemplateFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(TemplateFile)[1])
+		if os.path.exists(args.scrambledPDB):
+			ScrambledTemplateFile = args.scrambledPDB
+		else:
+			ScrambledTemplateFile = re.sub(FastaID,"{0}_scrambled".format(FastaID), os.path.split(TemplateFile)[1])
 		if not os.path.exists(ScrambledTemplateFile):
-			raise ValueError("Unable to read the scrambled FASTA file {0}".format(ScrambledTemplateFile))
+			raise ValueError("Unable to read the scrambled TEMPLATE PDB file {0}".format(ScrambledTemplateFile))
 		
 		# specifies mumber of models to generate
-		nModels = args.nModels
+		if args.nModels:
+			nModels = args.nModels
+		else:
+			nModels = 1
+
 		if nModels < 1:
-			raise ValueError("The number of requested models ({}) must be at lest one".format(nModels))
+			raise ValueError("The number of requested models ({}) must be at least one".format(nModels))
 
 		# activates Modeller's verbose mode
 		if args.verbose:
@@ -431,4 +453,3 @@ if __name__ == "__main__":
 		LoopModelScrambled = LoopModeller(FastaID, ScrambledFastaFile, StrandsFile, ScrambledTemplateFile, True, nModels)
 		# LoopModels.append( LoopModel )
 		LoopModels.append( (LoopModel,LoopModelScrambled) )
-
