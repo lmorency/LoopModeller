@@ -275,8 +275,12 @@ class LoopModeller:
 			f.write( "{0}*\n".format(''.join(alignment)) )
 			f.write( "\n" )
 
-			f.write( ">P1;{0}_full\n".format(self.FastaID) )
-			f.write( "sequence:{0}:{1}:A: : : : : :\n".format(self.FastaID+"_full", self.numbering[0]) )
+			if self.isScrambled:
+				f.write( ">P1;{0}_scrambled\n".format(self.FastaID) )
+				f.write( "sequence:{0}:{1}:A: : : : : :\n".format(self.FastaID+"_scrambled", self.numbering[0]) )
+			else:
+				f.write( ">P1;{0}_good\n".format(self.FastaID) )
+				f.write( "sequence:{0}:{1}:A: : : : : :\n".format(self.FastaID+"_good", self.numbering[0]) )
 			f.write( "{0}*\n".format(''.join(self.sequence)) )
 		if os.path.exists(AlignmentFile):
 			return AlignmentFile
@@ -321,7 +325,11 @@ class LoopModeller:
 		self.ModellerEnv.io.atom_files_directory = [self.BasePath]
 		self.ModellerEnv.schedule_scale = physical.values(default=1.0, soft_sphere=0.7)
 		# define ß-berrel modelling parameters
-		aBetaBarrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_full")
+		if self.isScrambled:
+			aBetaBarrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_scrambled")
+		else:
+			aBetaBarrelModel = MyModel(self.ModellerEnv, alnfile=self.AlignmentFile, knowns=self.FastaID, sequence=self.FastaID + "_good")
+
 		aBetaBarrelModel.starting_model = 1                 # index of the first model
 		aBetaBarrelModel.ending_model = 1        			# index of the last model
 		# aBetaBarrelModel.ending_model = self.nModels		# index of the last model
@@ -351,7 +359,11 @@ class LoopModeller:
 					for chain in self.chains:
 						chain.name = 'A'		
 		# define ß-berrel loops' modelling parameters
-		aLoop = MyLoop(self.ModellerEnv, inimodel=self.BetaBarrelModel.get_model_filename(sequence=self.FastaID + "_full",id1=9999,id2=1,file_ext='.pdb'), sequence=self.FastaID + "_full", loop_assess_methods=assess.DOPE)
+		self.ModellerEnv.io.atom_files_directory = [self.BasePath]
+		if self.isScrambled:
+			aLoop = MyLoop(self.ModellerEnv, inimodel=self.BetaBarrelModel.get_model_filename(sequence=self.FastaID + "_scrambled",id1=9999,id2=1,file_ext='.pdb'), sequence=self.FastaID + "_scrambled", loop_assess_methods=assess.DOPE)
+		else:
+			aLoop = MyLoop(self.ModellerEnv, inimodel=self.BetaBarrelModel.get_model_filename(sequence=self.FastaID + "_good",id1=9999,id2=1,file_ext='.pdb'), sequence=self.FastaID + "_good", loop_assess_methods=assess.DOPE)
 		aLoop.loop.starting_model = 1
 		aLoop.loop.ending_model = self.nModels
 		# define loops modelling refinement level
@@ -368,12 +380,12 @@ class LoopModeller:
 #####################################################################
 # define command line arguments
 ArgParser = argparse.ArgumentParser()
-ArgParser.add_argument("-f", "--fasta", "--fasta-file", "--fastafile", metavar = "FASTA", type = str, help="Path to the <FASTA file>", required=True)
 ArgParser.add_argument("-s", "--strands", "--strands-file", "--strandsfile", metavar = "STRANDS", type = str, help="Path to the <STRANDS file>", required=True)
-ArgParser.add_argument("-t", "--template", "--PDB", "--template-file", "--PDB-file", metavar = "PDB", type=str, required=True, help="Path to the <PDB template file>")
 ArgParser.add_argument("-d", "--scrambledPDB", metavar = "SCRAMBLED_PDB", type=str, required=True, help="Path to the <PDB scrambled template file>")
+ArgParser.add_argument("-f", "--fasta", "--fasta-file", "--fastafile", metavar = "FASTA", type = str, help="Path to the <FASTA file>", required=True)
+ArgParser.add_argument("-t", "--template", "--PDB", "--template-file", "--PDB-file", metavar = "PDB", type=str, required=True, help="Path to the <PDB template file>")
 ArgParser.add_argument("-c", "--scrambled", "--scrambled-fasta", metavar = "SCRAMBLED", type=str, required=True, help="Path to the <SCRAMBLED FASTA FILE>")
-ArgParser.add_argument("-n", "--nModels", "--nModels", metavar="N", type=int, required=True, help="Number of models to be generated")
+ArgParser.add_argument("-n", "--nModels", "--nModels", metavar="N", type=int, required=False, help="Number of models to be generated")
 ArgParser.add_argument("-v", "--verbose", action="store_true", help="Activates Modeller's verbose mode")
 
 # main execution of this script
