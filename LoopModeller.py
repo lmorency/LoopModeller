@@ -51,9 +51,9 @@ class LoopModeller:
 		self.makeloops()
 		
 		# executes LoopModelling pipeline with Modeller
-		self.modelBetaBarrel()
-		self.modelLoops()
-		self.selectModel()
+		self.model_beta_barrel()
+		self.model_loops()
+		self.select_model()
 
 	
 
@@ -92,11 +92,11 @@ class LoopModeller:
 		strands = []
 		with open(self.StrandsFile) as f:
 			lines = f.readlines()
-			for l in lines:
-				strand = re.search(r'(\d+)\s+(\d+)',l).groups(0)
-				# the original strand i,j are included and the sequence starts
-				# at 1. the -1 and +0 transform them to python array slices
-				strands.append((int(strand[0])-1,int(strand[1])+0))
+		for l in lines:
+			strand = re.search(r'(\d+)\s+(\d+)',l).groups(0)
+			# the original strand i,j are included and the sequence starts
+			# at 1. the -1 and +0 transform them to python array slices
+			strands.append((int(strand[0])-1,int(strand[1])+0))
 		# print(strands)
 		return strands
 
@@ -314,7 +314,7 @@ class LoopModeller:
 				formattedRes += ','
 		return formattedRes
 
-	def modelBetaBarrel(self):
+	def model_beta_barrel(self):
 		# redefines modeller's model class to rename chain to 'A'
 		class MyModel(automodel):
 			def special_patches(self, aln):
@@ -347,7 +347,7 @@ class LoopModeller:
 		self.BetaBarrelModel = aBetaBarrelModel
 
 
-	def modelLoops(self):
+	def model_loops(self):
 		selectedResidues = self.formatLoopResidues()	
 		# Create a new class based on 'loopmodel' so that we can redefine
 		# select_loop_atoms (necessary)
@@ -374,7 +374,7 @@ class LoopModeller:
 		# assign LoopModels to LoopModeller class
 		self.LoopModels.append( aLoop )
 
-	def selectModel(self):
+	def select_model(self):
 		pass
 
 #####################################################################
