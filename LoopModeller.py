@@ -41,6 +41,7 @@ class LoopModeller:
 		self.seqstrands = self.deepcopystrands()
 		self.extendBetaStrands()
 		self.printstrands()
+		self.writeSeqSrands(self.FastaID+'.seqstrands')
 		
 		# modeller's alignment file writing
 		self.AlignmentFile = self.buildAlignmentFile()
@@ -191,6 +192,11 @@ class LoopModeller:
 			self.exstrands.append((i, j))
 		# print(self.exstrands)
 
+
+	def	writeSeqSrands(self, filename):
+		with open(filename, 'w') as f:
+			for strand in self.seqstrands:
+				f.write('{0} {1}\n'.format(strand[0], strand[1]))
 
 	def printstrands(self):
 		for i in range(len(self.strands)):
